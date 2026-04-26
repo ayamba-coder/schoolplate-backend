@@ -62,9 +62,12 @@ class DonationPolicy
     /**
      * Determine whether the user can delete the model.
      */
-    public function delete(User $user, Donation $donation): bool
+    public function delete(User $user, Donation $donation): Response
     {
-        return $user->id === $donation->donor_id;
+        if ($user->role === "admin") {
+            return Response::allow();
+        }
+        return Response::deny("You are not authorized to delete this donation", 403);
     }
 
     /**

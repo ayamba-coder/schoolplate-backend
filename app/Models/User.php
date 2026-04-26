@@ -6,6 +6,8 @@ use App\Models\Traits\HasUserBehaviour;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\Contracts\HasApiTokens as HasApiTokensInterface;
@@ -20,44 +22,24 @@ class User extends Authenticatable implements HasApiTokensInterface
 {
 
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, HasApiTokens;
+    use HasFactory, Notifiable, HasApiTokens, SoftDeletes;
 
+
+    public function student(): HasOne
+    {
+        return $this->hasOne(Student::class);
+    }
+    public function donor(): HasOne
+    {
+        return $this->hasOne(Donor::class);
+    }
+    public function restaurant(): HasOne
+    {
+        return $this->hasOne(Restaurant::class);
+    }
     public function town(): BelongsTo
     {
         return $this->belongsTo(Town::class);
-    }
-
-    /**
-     * Relationship for Donors with Donation
-     * @return HasMany<Donation, User>
-     */
-    public function donations(): HasMany
-    {
-        return $this->hasMany(Donation::class, "donor_id");
-    }
-
-    /**
-     * Relationship for Student recipients with Donation
-     * @return HasMany<Donation, User>
-     */
-    public function recievedDonations(): HasMany
-    {
-        return $this->hasMany(Donation::class, "student_id");
-    }
-
-    protected static function boot()
-    {
-        parent::boot();
-        static::creating(function ($user) {
-            if ($user->role == 'student' || $user->role == 'restaurant') {
-                $user->verification_status = 'pending';
-                $user->verification_note = 'To have access to all money transactions,we need to verify you.Please upload the necessary documents and our team will activate your account in the next few days';
-            }
-        });
-
-        static::created(function ($user): void {
-            //fire sms
-        });
     }
 
     /**
@@ -66,20 +48,12 @@ class User extends Authenticatable implements HasApiTokensInterface
      * @var list<string>
      */
     protected $fillable = [
-        'username',
         'first_name',
         'last_name',
         'avatar',
         'telephone',
-        'town_id',
-        'type',
         'balance',
         'password',
-        'school',
-        'department',
-        'level',
-        'matricule',
-        'occupation',
         'role'
     ];
 

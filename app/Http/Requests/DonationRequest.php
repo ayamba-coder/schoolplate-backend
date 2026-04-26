@@ -13,10 +13,23 @@ class DonationRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
-            'student_id' => ['required','exists:users,id'],
-            'amount' => ['required','numeric','min:500'],
-            'payment_channel' => ['required','string'],
+        $role = $this->role;
+        $rules = [
+            'amount' => ['required', 'numeric', 'min:500'],
+            'payment_channel' => ['required', 'string'],
         ];
+        if ($role == 'donor') {
+            $rules = array_merge($rules, [
+                'student_id' => ['required', 'exists:users,id'],
+            ]);
+        }
+        if ($role == 'institution') {
+            $rules = array_merge($rules, [
+                'class_id' => ['required', 'exists:class,id']
+            ]);
+        }
+
+        return $rules;
+
     }
 }

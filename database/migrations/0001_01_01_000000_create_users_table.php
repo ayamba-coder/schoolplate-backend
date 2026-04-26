@@ -13,28 +13,55 @@ return new class extends Migration {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
             $table->string('first_name');
-            $table->string('last_name');
+            $table->string('last_name')->nullable();
             $table->string('avatar')->nullable();
             $table->string('telephone')->unique();
-            $table->enum('role', ["admin", "student", "donor", "partner"])->nullable();
-            $table->string('occupation')->nullable();
-            $table->string('school')->nullable();
-            $table->string('matricule')->nullable()->unique();
-            $table->string('department')->nullable();
-            $table->string('level')->nullable();
-            $table->decimal(column: 'balance', places: 2)->default(0.00);
-            $table->enum('verification_status', ['pending', 'approved', 'rejected'])->nullable();
-            $table->text('verification_note')->nullable();
-            $table->timestamp('account_verified_at')->nullable();
+            $table->enum('role', ["sudo", "admin", "student", "donor"]);
+            $table->decimal(column: 'balance', total: 10, places: 2)->default(0.00)->nullable(false);
             $table->string('password');
             $table->rememberToken();
             $table->timestamps();
+            $table->softDeletes();
         });
-        Schema::create('student_documents', function (Blueprint $table) {
+
+        Schema::create('donors', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId(column: "user_id")->constrained("users")->onDelete("cascade");
+            $table->string('occupation')->nullable();
+            $table->timestamps();
+        });
+        Schema::create('institutions', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId(column: "user_id")->constrained("users")->onDelete("cascade");
+            $table->string('logo')->nullable()->unique()->nullable();
+            $table->timestamps();
+        });
+        Schema::create('students', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId(column: "user_id")->constrained("users")->onDelete("cascade");
+            $table->string('school')->nullable();
+            $table->string('matricule')->nullable()->unique();
+            $table->string('department')->nullable();
+            $table->enum('verification_status', ['pending', 'approved', 'rejected'])->default("pending");
+            $table->timestamp('account_verified_at')->nullable();
+            $table->string('level')->nullable();
+            $table->timestamps();
+
+        });
+        // Schema::create('restaurants', function (Blueprint $table) {
+        //     $table->id();
+        //     $table->foreignId(column: "user_id")->constrained("users")->onDelete("cascade");
+        //     $table->string('location');
+        //     $table->enum('verification_status', ['pending', 'approved', 'rejected'])->default("pending");
+        //     $table->timestamp('account_verified_at')->nullable();
+        //     $table->timestamps();
+
+        // });
+        Schema::create('kyc_docs', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-            $table->string('document_type');
-            $table->string('file_path');
+            $table->string('type');
+            $table->string('path');
             $table->timestamps();
         });
 
@@ -60,7 +87,10 @@ return new class extends Migration {
     public function down(): void
     {
         Schema::dropIfExists('users');
-        Schema::dropIfExists('student_documents');
+        Schema::dropIfExists('donors');
+        Schema::dropIfExists('students');
+        Schema::dropIfExists('restaurants');
+        Schema::dropIfExists('kyc_docs');
         Schema::dropIfExists('password_reset_tokens');
         Schema::dropIfExists('sessions');
     }

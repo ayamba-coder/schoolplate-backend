@@ -26,7 +26,7 @@ class RegisterRequest extends FormRequest
 
         $rules = [
             'first_name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
+            'last_name' => 'string|max:255',
             'password' => [
                 'required',
                 'confirmed',
@@ -43,7 +43,7 @@ class RegisterRequest extends FormRequest
         if ($role == 'student') {
             $rules = array_merge($rules, [
                 'department' => 'required|string',
-                'matricule' => 'required|string|unique:users,matricule',
+                'matricule' => 'required|string|unique:students,matricule',
                 'school' => 'required|string',
                 'level' => 'required|string',
             ]);
@@ -51,6 +51,11 @@ class RegisterRequest extends FormRequest
         if ($role == 'donor') {
             $rules = array_merge($rules, [
                 'occupation' => 'required|string',
+            ]);
+        }
+        if ($role == 'restaurant') {
+            $rules = array_merge($rules, [
+                'location' => 'required|string',
             ]);
         }
 

@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
 use App\Http\Resources\UserResourceFactory;
+use App\Models\Donor;
+use App\Models\Student;
+use App\Models\Restaurant;
 use App\Models\User;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Http\JsonResponse;
@@ -42,7 +45,10 @@ class AuthController extends Controller
                     value: $newRefreshToken,
                     minutes: intdiv(config('sanctum.rt_expiration'), 60),
                     secure: true,
-                    httpOnly: true
+                    httpOnly: true,
+                    sameSite: 'Lax',
+                    domain: '.locahost',
+                    path: '/'
                 )
             );
     }
@@ -74,7 +80,10 @@ class AuthController extends Controller
                     value: $refreshToken,
                     minutes: intdiv(config('sanctum.rt_expiration'), 60),
                     secure: true,
-                    httpOnly: true
+                    httpOnly: true,
+                    sameSite: 'Lax',
+                    domain: '.locahost',
+                    path: '/'
                 )
             );
 
@@ -99,8 +108,24 @@ class AuthController extends Controller
         $validated = $request->validated();
 
         /** @var User $user */
-        $user = DB::transaction(callback: fn(): User => User::create($validated));
-
+        $user = DB::transaction(function () use ($validated) {
+            $user = User::create([
+                ...$validated
+            ]);
+            match ($user->role) {
+                "student" => Student::create([
+                    'user_id' => $user->id,
+                    ...$validated
+                ]),
+                "donor" => Donor::create([...$validated]),
+                "restaurant" => Restaurant::create([
+                    'user_id' => $user->id,
+                    ...$validated
+                ])
+            };
+            return $user;
+        });
+        $user->refresh();
         return response()->json([
             'status' => 'success',
             'message' => 'Registration successful',
