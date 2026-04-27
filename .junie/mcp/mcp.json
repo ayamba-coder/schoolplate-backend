@@ -1,0 +1,11 @@
+{
+    "mcpServers": {
+        "laravel-boost": {
+            "command": "/home/batey96/.config/herd-lite/bin/php",
+            "args": [
+                "/media/batey96/D8A007F9A007DD3E/development/SchoolPlate/backend/artisan",
+                "boost:mcp"
+            ]
+        }
+    }
+}
